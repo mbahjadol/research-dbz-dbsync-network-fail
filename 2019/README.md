@@ -12,15 +12,19 @@ data flow with SQLServer as source connector and MySQL as sink connector example
           * [Testing](#testing)         
         * [Stopping](#stopping)
 
+---
 
 ### Specifications
 
   SQLServer version 2019
   FROM mcr.microsoft.com/mssql/server:2019-latest
 
+---
 
 ### Topology
 
+
+#### Synchronize Topology
 
 ```
                 +-----------------+
@@ -49,6 +53,7 @@ data flow with SQLServer as source connector and MySQL as sink connector example
 
 
 ```
+
 We are using Docker Compose to deploy following components
 * SQLServer
 * Kafka
@@ -56,6 +61,45 @@ We are using Docker Compose to deploy following components
   * Kafka Broker
   * Kafka Connect with [Debezium](https://debezium.io/) and  [JDBC](https://debezium.io/documentation/reference/stable/connectors/jdbc.html) Connectors
 * SQLServer
+
+
+#### Real-time Monitoring Topology
+
+```
++---------------------+        +---------------------+
+|  Source SQL Server  |        |  Target SQL Server  |
+|  (CDC enabled)      |        |  (Debezium sink)    |
++----------+----------+        +----------+----------+
+           |                              ^
+           |                              |
+           v                              |
++---------------------+        +------------------------+
+|   Debezium Connect  | -----> |     Kafka Broker       |
+|  (JMX metrics open) |        |  (JMX + KafkaExporter) |
++---------------------+        +------------------------+
+                |                       |
+                +-----> Prometheus <----+
+                            |
+                            v
+                        Grafana
+```
+
+##### 🧭 Goal
+
+Add real-time monitoring for:
+* Kafka consumer lag
+* Debezium connector lag
+* SQL Server sync latency
+* System health (Kafka, Connect, Zookeeper)
+
+Using:
+* Prometheus — metrics collector
+* Grafana — visualization dashboard
+* Kafka Exporter — exports consumer lag metrics
+* JMX Exporter — exports JVM metrics from Kafka & Connect
+
+
+---
 
 ### Usage
 All of the environment setting is stored at env.sh, you can look at there.
