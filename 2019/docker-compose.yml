@@ -83,5 +83,3 @@ services:
       QPS_UPDATE: 10
     ports:
       - "8000:8000"
-  #   depends_on:
-  #     - source-db
