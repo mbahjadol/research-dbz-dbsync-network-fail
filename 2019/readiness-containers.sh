@@ -155,3 +155,63 @@ function check_kafka_ui_container() {
     done
 }
 
+function check_kafka_exporter_container() {
+    container_name="kafka-exporter"
+    echo -n "Waiting '$container_name' ."
+    while true; do
+        status=$(docker inspect --format "{{.State.Status}}" $container_name)
+
+        if [ "$status" == "running" ]; then
+            ready=$(docker exec $container_name /bin/sh -c "wget --spider -q http://localhost:9308/metrics && echo 200 || echo 000")
+
+            if [ "$ready" == "200" ]; then
+                echo -e "... ${green}READY${reset}"
+                break
+            fi
+        fi
+        echo -n "."
+        sleep 1
+    done
+}
+
+function check_prometheus_container() {
+    container_name="prometheus"
+    echo -n "Waiting '$container_name' ."
+    while true; do
+        status=$(docker inspect --format "{{.State.Status}}" $container_name)
+
+        if [ "$status" == "running" ]; then
+            ready=$(docker exec $container_name /bin/sh -c "wget --spider -q http://localhost:9090/metrics && echo 200 || echo 000")
+
+            if [ "$ready" == "200" ]; then
+                echo -e "... ${green}READY${reset}"
+                break
+            fi
+        fi
+        echo -n "."
+        sleep 1
+    done
+}
+
+function check_grafana_container() {
+    container_name="grafana"
+    echo -n "Waiting '$container_name' ."
+    while true; do
+        status=$(docker inspect --format "{{.State.Status}}" $container_name)
+
+        if [ "$status" == "running" ]; then
+            # Grafana takes a while to start up, check if it's ready to accept connections
+            # ready=$(docker exec $container_name /bin/sh -c "curl -s -o /dev/null -w %{http_code} http://localhost:3000")
+            ready=$(docker exec $container_name /bin/sh -c "curl -s -o /dev/null -w %{http_code} http://localhost:3000/login")
+            # ready=$(docker exec $container_name /bin/sh -c "wget --server-response --spider -q http://localhost:3000 2>&1 | grep -E 'HTTP/1.[01] 200|HTTP/1.[01] 302' && echo OK || echo FAIL")
+
+            if [ "$ready" == "200" ]; then
+                echo -e "... ${green}READY${reset}"
+                break
+            fi
+        fi
+        # Wait before checking again
+        echo -n "."
+        sleep 1
+    done
+}   
