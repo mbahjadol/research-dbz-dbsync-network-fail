@@ -50,17 +50,6 @@ echo "---------------------------------------------"
 echo "---------------------------------------------"
 # press_enter
 
-# # Run the tests
-# echo "---------------------------------------------"
-# echo "Running the tests."
-# echo "---------------------------------------------"
-# ./testing.sh
-# echo
-
-# echo "All tests are done!"
-
-# echo "---------------------------------------------"
-
 echo "You can stop all the containers by running the following command:"
 echo "${bold}./stop.sh${reset}"
 
