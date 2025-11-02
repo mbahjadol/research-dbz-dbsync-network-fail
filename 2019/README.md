@@ -102,7 +102,17 @@ Using:
 ---
 
 ### Usage
+
+🧰 5. Load Prebuilt Dashboards
+
+In Grafana:
+- Add Prometheus data source → URL: http://prometheus:9090
+- Import dashboards (via Grafana → Dashboards → Import):
+- Kafka Exporter Dashboard (ID: 7589)
+- Debezium Connector Dashboard (custom or from community)
+
 All of the environment setting is stored at env.sh, you can look at there.
+
 👉 Grafana UI: http://localhost:3000
 (default login: admin / admin)
 

@@ -59,7 +59,7 @@ services:
     restart: unless-stopped
 
   # ============================================================
-  # Debezium Connect Service
+  # ⛓️ Debezium Connect Service
   # ============================================================
   connect:
     container_name: connect
@@ -85,7 +85,7 @@ services:
       -Djava.rmi.server.hostname=connect
 
   # ============================================================
-  # Prometheus Service
+  # 📈 Prometheus Service
   # ============================================================
   prometheus:
     container_name: prometheus
@@ -100,11 +100,17 @@ services:
       - kafka-exporter
 
   # ============================================================
-  # Grafana Service
+  # 📊 Grafana Service
   # ============================================================
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
+    # entrypoint: ["/bin/bash", "/grafana-init.sh"]
+    volumes:
+      - ./grafana/provisioning/datasources/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+      - ./grafana/provisioning/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./grafana/provisioning/dashboards_json/kafka-lag-dashboard.json:/etc/grafana/provisioning/dashboards_json/kafka-lag-dashboard.json      
+      # - ./grafana/grafana-init.sh:/grafana-init.sh
     ports:
       - "3000:3000"
     environment:
@@ -114,7 +120,7 @@ services:
       - prometheus
 
   # ============================================================
-  # Source Database Service
+  # 🛢️ Source Database Service
   # ============================================================
   source-db:
     container_name: ${SOURCE_NAME}
@@ -133,7 +139,7 @@ services:
      - MSSQL_ENABLE_HADR=1
 
   # ============================================================
-  # Target Database Service
+  # 🛢️ Target Database Service
   # ============================================================
   target-db:
     container_name: ${TARGET_NAME}
@@ -152,7 +158,7 @@ services:
      - MSSQL_ENABLE_HADR=1
 
   # ============================================================
-  # Simulation Service for generating workload
+  # 🧪 Simulation Service for generating workload
   # ============================================================
   sim-svc:
     container_name: sim-svc

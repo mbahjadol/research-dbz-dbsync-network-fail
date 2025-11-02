@@ -59,4 +59,11 @@ echo "---------------------------------------------"
 echo "You can stop all the containers by running the following command:"
 echo "${bold}./stop.sh${reset}"
 
+echo "Start Simulating workload by running the following command in a separate terminal:"
+./sim-svc.sh insert-bg
+./sim-svc.sh update-bg
+
+echo "---------------------------------------------"
+echo "👉 Grafana UI: http://localhost:3000"
+echo "(default login: admin / admin)"
 echo "---------------------------------------------"
