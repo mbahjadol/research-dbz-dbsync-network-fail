@@ -26,11 +26,11 @@ elif [ "$1" == "update-qps" ]; then
   docker exec sim-svc sh -c "curl -s http://localhost:8000/sim-update-qps/$2; echo" | jq
 else
   echo "Usage: $0 {insert-bg|update-bg|stop-insert-bg|stop-update-bg|status|insert-qps <number>|update-qps <number>"
-  echo "  insert-bg       - ➕Start background inserts"
-  echo "  update-bg       - ✏️Start background updates"
-  echo "  stop-insert-bg  - ⛔Stop background inserts"
-  echo "  stop-update-bg  - 🚫Stop background updates"
-  echo "  status          - 📦Get status of background operations"
-  echo "  insert-qps      - ⚙️Set insert qps number"
-  echo "  update-qps      - ⚙️Set update qps number"
+  echo "  insert-bg       - ➕ Start background inserts"
+  echo "  update-bg       - ✏️ Start background updates"
+  echo "  stop-insert-bg  - ⛔ Stop background inserts"
+  echo "  stop-update-bg  - 🚫 Stop background updates"
+  echo "  status          - 📦 Get status of background operations"
+  echo "  insert-qps      - ⚙️ Set insert qps number"
+  echo "  update-qps      - ⚙️ Set update qps number"
 fi

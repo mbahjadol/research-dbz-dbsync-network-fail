@@ -100,15 +100,34 @@ def get_status():
     }
 
 @app.get("/sim-update-qps/{qps}")
-def set_update_qps(qps: float):
-    global QPS_UPDATE
+async def set_update_qps(qps: float):
+    global QPS_UPDATE, update_task, update_running
+
     QPS_UPDATE = qps
     os.environ['QPS_UPDATE'] = str(qps)
-    return {"status": "ok", "new_qps_update": QPS_UPDATE}   
+
+    if update_running:
+        # Gracefully stop the current task
+        update_running = False
+        if update_task:
+            await asyncio.sleep(0.5)  # allow loop to exit
+
+    # Start a new one
+    update_task = asyncio.create_task(background_update_loop())
+    return {"status": "ok", "new_qps_update": QPS_UPDATE}
+
 
 @app.get("/sim-insert-qps/{qps}")
-def set_insert_qps(qps: float):
-    global QPS_INSERT
+async def set_insert_qps(qps: float):
+    global QPS_INSERT, insert_task, insert_running
+
     QPS_INSERT = qps
     os.environ['QPS_INSERT'] = str(qps)
-    return {"status": "ok", "new_qps_insert": QPS_INSERT}   
+
+    if insert_running:
+        insert_running = False
+        if insert_task:
+            await asyncio.sleep(0.5)
+
+    insert_task = asyncio.create_task(background_insert_loop())
+    return {"status": "ok", "new_qps_insert": QPS_INSERT}
