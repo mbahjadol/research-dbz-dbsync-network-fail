@@ -1,5 +1,8 @@
 # version: '2'
 services:
+  # ============================================================
+  # 🐒 Zookeeper Service
+  # ============================================================
   zookeeper:
     container_name: zookeeper
     image: quay.io/debezium/zookeeper:${DEBEZIUM_VERSION}
@@ -7,15 +10,30 @@ services:
      - 2181:2181
      - 2888:2888
      - 3888:3888
+
+  # ============================================================
+  # 🔗 Kafka Service
+  # ============================================================
   kafka:  
     container_name: kafka
     image: quay.io/debezium/kafka:${DEBEZIUM_VERSION}
     ports:
      - 9092:9092
+     - 9101:9101   # <-- Prometheus JMX metrics
     depends_on:
      - zookeeper
     environment:
-     - ZOOKEEPER_CONNECT=zookeeper:2181
+     ZOOKEEPER_CONNECT: zookeeper:2181
+     KAFKA_JMX_PORT: 9101
+     KAFKA_JMX_OPTS: |
+      -Dcom.sun.management.jmxremote=true
+      -Dcom.sun.management.jmxremote.local.only=false
+      -Dcom.sun.management.jmxremote.rmi.port=9101
+      -Djava.rmi.server.hostname=kafka
+  
+  # ============================================================
+  # 🌐 Kafka UI Service
+  # ============================================================
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui
@@ -24,21 +42,80 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092  # Adjust if your broker name is different     
+
+  # ============================================================
+  # 📤 Kafka Exporter Service
+  # ============================================================
+  kafka-exporter:
+    container_name: kafka-exporter
+    image: danielqsj/kafka-exporter:latest
+    ports:
+      - "9308:9308"
+    command:
+      - "--kafka.server=kafka:9092"
+      - "--log.level=info"
+    depends_on:
+      - kafka
+    restart: unless-stopped
+
+  # ============================================================
+  # Debezium Connect Service
+  # ============================================================
   connect:
     container_name: connect
     image: quay.io/debezium/connect:${DEBEZIUM_VERSION}
     ports:
      - 8083:8083
+     - 9102:9102   # <-- Prometheus JMX metrics
     depends_on:
      - kafka
      - ${SOURCE_NAME}
      - ${TARGET_NAME}
     environment:
-     - BOOTSTRAP_SERVERS=kafka:9092
-     - GROUP_ID=1
-     - CONFIG_STORAGE_TOPIC=${CONFIG_STORAGE_TOPIC}
-     - OFFSET_STORAGE_TOPIC=${OFFSET_STORAGE_TOPIC}
-     - STATUS_STORAGE_TOPIC=${STATUS_STORAGE_TOPIC}
+     BOOTSTRAP_SERVERS: kafka:9092
+     GROUP_ID: 1
+     CONFIG_STORAGE_TOPIC: ${CONFIG_STORAGE_TOPIC}
+     OFFSET_STORAGE_TOPIC: ${OFFSET_STORAGE_TOPIC}
+     STATUS_STORAGE_TOPIC: ${STATUS_STORAGE_TOPIC}
+     KAFKA_JMX_PORT: 9102
+     KAFKA_JMX_OPTS: |
+      -Dcom.sun.management.jmxremote=true
+      -Dcom.sun.management.jmxremote.local.only=false
+      -Dcom.sun.management.jmxremote.rmi.port=9102
+      -Djava.rmi.server.hostname=connect
+
+  # ============================================================
+  # Prometheus Service
+  # ============================================================
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - kafka
+      - connect
+      - kafka-exporter
+
+  # ============================================================
+  # Grafana Service
+  # ============================================================
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+  # ============================================================
+  # Source Database Service
+  # ============================================================
   source-db:
     container_name: ${SOURCE_NAME}
     image: debezium/sql-server-keys
@@ -54,6 +131,10 @@ services:
      - SA_PASSWORD=Password!
      - MSSQL_AGENT_ENABLED=true
      - MSSQL_ENABLE_HADR=1
+
+  # ============================================================
+  # Target Database Service
+  # ============================================================
   target-db:
     container_name: ${TARGET_NAME}
     image: debezium/sql-server-keys
@@ -69,6 +150,10 @@ services:
      - SA_PASSWORD=Password!
      - MSSQL_AGENT_ENABLED=true
      - MSSQL_ENABLE_HADR=1
+
+  # ============================================================
+  # Simulation Service for generating workload
+  # ============================================================
   sim-svc:
     container_name: sim-svc
     image: sim-svc:latest
@@ -83,3 +168,4 @@ services:
       QPS_UPDATE: 10
     ports:
       - "8000:8000"
+  # ============================================================

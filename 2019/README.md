@@ -103,6 +103,8 @@ Using:
 
 ### Usage
 All of the environment setting is stored at env.sh, you can look at there.
+👉 Grafana UI: http://localhost:3000
+(default login: admin / admin)
 
 #### Running
 All processed is almost automatically from creating container setup the connector until you can testing the flow you can only running single command and then you can follow the instruction there.
