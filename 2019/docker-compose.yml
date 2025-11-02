@@ -171,7 +171,7 @@ services:
       DB_PASSWORD: Password!
       DB_NAME: inventory
       QPS_INSERT: 10
-      QPS_UPDATE: 10
+      QPS_UPDATE: 50
     ports:
       - "8000:8000"
   # ============================================================
