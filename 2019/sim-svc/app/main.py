@@ -98,3 +98,17 @@ def get_status():
         "qps_insert": QPS_INSERT,
         "qps_update": QPS_UPDATE,
     }
+
+@app.get("/sim-update-qps/{qps}")
+def set_update_qps(qps: float):
+    global QPS_UPDATE
+    QPS_UPDATE = qps
+    os.environ['QPS_UPDATE'] = str(qps)
+    return {"status": "ok", "new_qps_update": QPS_UPDATE}   
+
+@app.get("/sim-insert-qps/{qps}")
+def set_insert_qps(qps: float):
+    global QPS_INSERT
+    QPS_INSERT = qps
+    os.environ['QPS_INSERT'] = str(qps)
+    return {"status": "ok", "new_qps_insert": QPS_INSERT}   
