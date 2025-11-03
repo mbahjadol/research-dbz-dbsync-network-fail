@@ -118,22 +118,12 @@ We start with 2 types of SQL Server Database, which is:
 
 ## 🚀 How to Run
 
-```bash
-# 1. Start environment
-docker compose up -d
+For simulating for SQL Server 2019 -> SQL Server 2019 manual you can go here:
+* **[Simulation For SQL Server 2019](./2019/README.md)**
 
-# 2. Insert sample data
-./scripts/insert_data.sh
+For simulating for SQL Server 2022 -> SQL Server 2022 manual you can go here:
+* **[Simulation For SQL Server 2022](./2022/README.md)**
 
-# 3. Simulate network failure
-./network-sim/disconnect.sh
-
-# 4. Observe logs
-docker logs -f debezium-connector
-
-# 5. Restore connection
-./network-sim/reconnect.sh
-```
 
 ---
 
