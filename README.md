@@ -18,7 +18,7 @@ This project aims to:
 ## 🎯 Objectives
 
 1. Simulate network failures between Debezium, Kafka, and the target database.
-2. Observe event buffering, delivery, and reconnection behavior.
+2. Observe consumer lag event, buffering, delivery, and reconnection behavior.
 3. Evaluate whether Debezium guarantees **exactly-once** or **at-least-once** delivery under unstable conditions.
 4. Propose possible enhancements or best practices for maintaining synchronization reliability.
 
@@ -41,6 +41,10 @@ This test environment is a compilation with modification from
 * And adaptation and enhancement from this test [Flink CDC MySQL Test](https://github.com/mbahjadol/flink-cdc-mysql-sync)
 
 
+We start with 2 types of SQL Server Database, which is:
+* MS SQL Server 2019
+* MS SQL Server 2022
+
 ---
 
 ## ⚙️ Architecture Overview
@@ -55,9 +59,9 @@ This test environment is a compilation with modification from
 ## 🧾 Methodology
 
 1. **Setup baseline** Debezium + Kafka environment.
-2. **Insert / Update / Delete** sample records in source DB.
-3. **Introduce network failure** (between Debezium and Kafka or Kafka and sink DB).
-4. **Monitor** message flow, connector logs, and offset storage.
+2. **Insert / Update** simulating auto sample records in source DB with QPS (Query Per Seconds).
+3. **Introduce network failure** (between Debezium and Kafka or Kafka and target DB).
+4. **Monitor** message flow, connector logs, and offset storage, we enhance it using prometheus and grafana to observing it especially lag by consumer.
 5. **Restore connection** and analyze synchronization behavior.
 6. **Document** any data inconsistencies or replay issues.
 
@@ -65,22 +69,21 @@ This test environment is a compilation with modification from
 
 ## 📊 Metrics Observed
 
-* Event loss rate (%)
-* Recovery latency (time to resume)
-* Duplicate events (if any)
-* Offset consistency before/after recovery
+* Kafka **Lag by Consumer Group**
+* Kafka **Message in per seconds**
+* Kafka **Message in per minute**
+* Kafka **Message consume per minute**
+* Kafka **Partition per Topic**
+* Kafka specific topic we observes is `s1_insert_lag` and `s1_update_lag`
 
 ---
 
 ## 💡 Findings (Preliminary)
 
-> *This section summarizes your observations once experiments are completed.*
+> *THIS IS SUMMARIZES OF MY OBSERVATIONS.*
 
-Example:
-
-* Debezium buffers unsent events until Kafka is reachable again.
-* Recovery is automatic and data remains consistent.
-* Under prolonged outages, offsets may require manual validation.
+* **Debezium buffers unsent events until Kafka is reachable again.**
+* **Recovery is automatic and data remains consistent.**
 
 ---
 
@@ -107,10 +110,8 @@ Example:
 
 ```bash
 .
-├── docker-compose.yml        # Kafka + Debezium + Databases setup
-├── src/                      # Test scripts / utilities
-├── docs/                     # Experiment notes and findings
-├── network-sim/              # Network disruption simulation scripts
+├── 2019/                      # MSSQLServer 2019 Database to MSSQLServer 2019 Database
+├── 2022/                      # MSSQLServer 2022 Database to MSSQLServer 2022 Database
 └── README.md
 ```
 
