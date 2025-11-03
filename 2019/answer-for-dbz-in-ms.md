@@ -1,8 +1,7 @@
-Excellent question — and very sharp observation. 👏
+[<< Back](./README.md)
 
-Let’s unpack this carefully:
+# Others Had Claims That Debezium Sync In Milliseconds
 
----
 
 ### 🧠 1️⃣ What “sync latency in ms” claims really mean
 
@@ -19,9 +18,9 @@ But that’s only the **capture side latency** — not end-to-end database-to-da
 
 ---
 
-### ⚙️ 2️⃣ What you’re measuring (and what production systems see)
+### ⚙️ 2️⃣ What this simulation measuring (and what production systems see)
 
-Your measurement is **end-to-end**:
+This measurement is **END-to-END**:
 
 > source DB → Debezium → Kafka → sink → target DB
 
@@ -34,7 +33,7 @@ That includes:
 
 Each step adds tens or hundreds of ms.
 
-So your 4–5 seconds average sync latency at low QPS — while spikes push higher — is **completely normal** for:
+So this 4–5 seconds average sync latency at low QPS — while spikes push higher — is **completely normal** for:
 
 * moderate hardware (Dockerized MSSQL)
 * single task connector
@@ -49,7 +48,7 @@ Real production deployments with similar topology typically report:
 | Production cluster (3 brokers, tuned) | 500 ms – 2 s       | 5 s             |
 | Cross-region or under backpressure    | 5–20 s             | 1–2 min spikes  |
 
-So your numbers are already **within realistic “production-scale” range** for a simple setup.
+So this numbers are already **within realistic “production-scale” range** for a simple setup.
 
 ---
 
@@ -65,20 +64,6 @@ Those claims often measure **connector emission latency** (from binlog entry →
 
 ---
 
-### ⚙️ 4️⃣ For real benchmarking
-
-If you want to quantify “sync speed per QPS”, record:
-
-* source commit timestamp
-* Kafka message timestamp (`timestampType=CREATE_TIME`)
-* target DB commit timestamp
-
-Then compute
-`target_timestamp – source_timestamp` = **end-to-end latency**.
-Plot vs QPS. You’ll see a smooth curve rising with load — Debezium’s backpressure mechanism keeps throughput safe but adds lag.
-
----
-
 ✅ **Summary**
 
 | Metric               | Your Value             | Typical Range                                                   | Comment                               |
@@ -88,11 +73,16 @@ Plot vs QPS. You’ll see a smooth curve rising with load — Debezium’s backp
 | “ms latency” claims  | Marketing / ideal-case | —                                                               | Ignore unless they specify end-to-end |
 
 ---
+---
+---
+---
+---
 
-If you’d like, I can show you a short Grafana formula to derive “average sync time per QPS” from your existing lag topics — would you like that?
 
 
-Good — let’s do the math step-by-step (digit-by-digit) for both the **low phase** and the **spike (high) phase**, using the same QPS you gave earlier (Insert = 2 r/s, Update = 10 r/s).
+# THE CALCULATIONS
+
+Let’s do the math step-by-step (digit-by-digit) for both the **low phase** and the **spike (high) phase**, using the same QPS for this simulation (Insert = 2 r/s, Update = 10 r/s).
 
 ---
 
@@ -200,9 +190,4 @@ Good — let’s do the math step-by-step (digit-by-digit) for both the **low ph
 
 ---
 
-If you want, I can:
-
-* produce a tiny shell script that samples lag and computes these per-topic times live, or
-* show Grafana queries you can add to display **avg sync time** and highlight spike windows automatically.
-
-Which would you like?
+[<< Back](./README.md)
