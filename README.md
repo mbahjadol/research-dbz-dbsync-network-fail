@@ -137,8 +137,6 @@ MIT License — feel free to use and adapt for your own research or development 
 
 * [Debezium Documentation](https://debezium.io/documentation/)
 * [Kafka Connect Concepts](https://kafka.apache.org/documentation/#connect)
-* [Handling Network Failures in Distributed Systems](https://martinfowler.com/articles/patterns-of-distributed-systems/reliability.html)
-* [Outbox Pattern](https://microservices.io/patterns/data/transactional-outbox.html)
 * [Debezium Check Test](https://github.com/mbahjadol/dbz-check-test)
 * [Network Failure Simulation](https://github.com/mbahjadol/two-network-simulation)
 * And adaptation and enhancement from this test [Flink CDC MySQL Test](https://github.com/mbahjadol/flink-cdc-mysql-sync)
