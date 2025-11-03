@@ -92,7 +92,6 @@ We start with 2 types of SQL Server Database, which is:
 * Use **Kafka persistence with idempotent producers**.
 * Enable **Debezium offset storage on durable medium**.
 * Configure **retry and backoff strategies** properly.
-* Add **monitoring/alerting** via Prometheus or Grafana.
 * Consider **outbox pattern** for transactional integrity.
 
 ---
