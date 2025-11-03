@@ -4,14 +4,6 @@ data flow with SQLServer 2019 as source connector and SQLServer 2019  as sink co
 
 [<< Back to Root](../README.md)
 
-## Table of Contents
-
-* [Topology](#topology)
-    * [Usage](#usage)
-        * [Running](#running)
-          * [Testing](#testing)         
-        * [Stopping](#stopping)
-
 ---
 
 ### Specifications
@@ -152,38 +144,20 @@ Using:
 
 ---
 
-### Usage
+### Usage or Running The Simulation
 
-🧰 5. Load Prebuilt Dashboards
-
-In Grafana:
-- Add Prometheus data source → URL: http://prometheus:9090
-- Import dashboards (via Grafana → Dashboards → Import):
-- Kafka Exporter Dashboard (ID: 7589)
-- Debezium Connector Dashboard (custom or from community)
-
-All of the environment setting is stored at env.sh, you can look at there.
-
-👉 Grafana UI: http://localhost:3000
-(default login: admin / admin)
+All processed is almost automatically from creating container setup the connector until you can testing the flow you can only running single command and then you can follow the instruction.
 
 #### Running
-All processed is almost automatically from creating container setup the connector until you can testing the flow you can only running single command and then you can follow the instruction there.
 
 How to run:
-
 ```shell
-cd sqlsvr_sqlsvr
-
-# Starting up
-./start.sh
+  # Starting up
+  ./start.sh
 
 ```
 
-
-#### Testing
-
-You can follow the instruction there, which test adding, modify, and deletion test.
+⌚ Just wait until all process is finished.
 
 
 #### Stopping
@@ -195,6 +169,59 @@ How to stop:
 
 ```
 
+---
+
+### Monitoring The Simulation
+
+Open in your web browser
+* 👉 Grafana UI: http://localhost:3000
+* (default login: admin / admin)
+* then open **Dashboard** → open **Kafka Exporter Overview**
+* set **Refresh Rate by 5s** for better observe
+* set time range **Last 15 Minutes** for better observe
+* select **Topic** for → `s1_insert_lag` and `s1_update_lag`
+* then especially to observe the **Lag by Consumer Group**, you will see it continously spike and down chart, and that is expected.
+
+You will hesitate why this architecture design feels like that, and you want to know why others simulation and test is **claim debezium sync is par of milliseconds**, you can have overview answer in [< ANSWER FOR DEBEZIUM SYNC IN MILLISECONDS >](./answer-for-dbz-in-ms.md)
+
+
+
+## Simulating The Latency
+
+This is our main primary test:
+* Our simulation purpose here is to test whether our debezium stack layer is success or no to deliver our design synchronize process, even with loss package, but when the connection is available it will automatically deliver into our target databases.
+* We will continously to observe in grafana dashboard section **Lag by Consumer Group**. 
+* Our test will simulating loss package 100% for couple seconds.
+* And we expected that the chart in our monitoring grafana dashboard will be spike abnormally when the simulation of package loss 100% is begin.
+* Then we expected to see that in our monitoring grafana dashboard will decrease normally when the simulation latency is reset.
+
+
+
+#### Normal **Lag by Consumer Group** Chart
+![Normal_Chart](./readme_images/normal_chart.png)
+
+
+### Simulating The Package Loss
+We will try to simulate lost connection into our target database
+```shell
+  ./simulate-latency target-db loss100
+```
+
+***And then We wait for approximately 30 seconds***
+
+then execute this:
+```shell
+  ./simulate-latency target-db reset
+```
+
+#### Anomaly of **Lag by Consumer Group** Chart
+![Anomaly_Chart](./readme_images/anomaly_chart.png)
+
+
+**We see that there was anomaly spike of consumer lag chart, that is because the sink connector is failed to connect into our target database. As our expected to this simulation**
+
+
+**Then it will decrease normaly as the connection is available again**
 
 
 
