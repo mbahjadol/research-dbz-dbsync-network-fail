@@ -23,7 +23,6 @@
         "transforms.removePrefix.replacement": "$1",
         
         "batch.size": "200",
-        "max.retries": "5",
         "retry.backoff.ms": "1000",
 
         "connection.pool.max.size": "10",
@@ -35,7 +34,12 @@
         "auto.create.tables": "true",
 
         "errors.log.enable": "true",
-        "errors.log.include.messages": "true"       
+        "errors.log.include.messages": "true",       
 
+        "errors.tolerance": "all",
+        "errors.retry.timeout": "0",  
+        "errors.retry.delay.max.ms": "10000",
+        "errors.deadletterqueue.topic.name": "dlq.XXXXX",
+        "errors.deadletterqueue.context.headers.enable": "true"
     }
 }

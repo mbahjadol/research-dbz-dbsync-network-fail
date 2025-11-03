@@ -1,8 +1,8 @@
-# SQLServer to SQLServer
+# SQLServer 2019 to SQLServer 2019
 
-data flow with SQLServer as source connector and MySQL as sink connector examples.
+data flow with SQLServer 2019 as source connector and SQLServer 2019  as sink connector examples.
 
-[<< Back to dbz-check-test Root](../README.md)
+[<< Back to Root](../README.md)
 
 ## Table of Contents
 
@@ -21,16 +21,16 @@ data flow with SQLServer as source connector and MySQL as sink connector example
 
 ---
 
-### Topology
+## Topology & Architecture Design
 
 
-#### Synchronize Topology
+### 1. Synchronize Topology
 
 ```
                 +-----------------+
                 |                 |
                 |    SQLServer    |
-                |                 |
+                |      2019       |
                 +---------+-------+
                           |
                           |
@@ -38,7 +38,7 @@ data flow with SQLServer as source connector and MySQL as sink connector example
           +---------------v------------------+
           |                                  |
           |           Kafka Connect          |
-          |  (Debezium, JDBC connectors)     |
+          | (Debezium, JDBC connectors, etc) |
           |                                  |
           +---------------+------------------+
                           |
@@ -48,7 +48,7 @@ data flow with SQLServer as source connector and MySQL as sink connector example
                   +-------v--------+
                   |                |
                   |   SQLServer    |
-                  |                |
+                  |      2019      |
                   +----------------+
 
 
@@ -62,8 +62,9 @@ We are using Docker Compose to deploy following components
   * Kafka Connect with [Debezium](https://debezium.io/) and  [JDBC](https://debezium.io/documentation/reference/stable/connectors/jdbc.html) Connectors
 * SQLServer
 
+---
 
-#### Real-time Monitoring Topology
+### 2. Real-time Monitoring Topology
 
 ```
 +---------------------+        +---------------------+
@@ -84,7 +85,7 @@ We are using Docker Compose to deploy following components
                         Grafana
 ```
 
-##### 🧭 Goal
+##### 🧭 Real-time Monitoring Goal
 
 Add real-time monitoring for:
 * Kafka consumer lag
@@ -97,6 +98,56 @@ Using:
 * Grafana — visualization dashboard
 * Kafka Exporter — exports consumer lag metrics
 * JMX Exporter — exports JVM metrics from Kafka & Connect
+
+---
+
+### 3. Segregation Networking Simulation Base on Real World Case
+
+```
+           ┌──────────────┐
+           │   Grafana    │
+           └──────┬───────┘
+                  │ {monitor_net}
+           ┌──────┴─────────┐
+           │  Prometheus    │
+           └──────┬─────────┘
+                  │
+        ┌─────────┼───────────────┐
+        │ kafka-exporter          │
+        │ connect {bridges all}   │
+        └──┬───────┬───────────┬──┘
+           │       │           │
+ {source_net}  {target_net}   {kafka_net}
+      │            │           │
+  source-db     target-db     kafka
+      │                        │
+ {sim_zone}             zookeeper, kafka-ui
+      |
+   sim-svc     
+```
+
+#### Logical Network Zone Design
+
+| Zone         | Network | Purpose                    | Connected Components                                          |
+| --------------- | -------------------------- | --------------------------| ------------------------------------------------------------- |
+| 🧪 **Sim Zone**     | `sim_zone` | Simulator ↔ Source DB only | `sim-svc`, `source-db`                                        |
+| 🛢️ **Source Zone**  | `source_zone` | Connect ↔ Source DB only   | `connect`, `source-db`                                        |
+| 🎯 **Target Zone**  | `target_zone` | Connect ↔ Target DB only   | `connect`, `target-db`                                        |
+| 🔗 **Kafka Zone**   | `kafka_zone` | Kafka stack                | `connect`, `zookeeper`, `kafka`, `kafka-ui`, `kafka-exporter` |
+| 📈 **Monitor Zone** | `monitor_zone` | Monitoring stack           | `connect`, `prometheus`, `grafana`, `kafka-exporter`          |
+
+
+#### Interconnection Rules
+
+| Source                                     | Destination   | Network(s)                   | Description |
+| ------------------------------------------ | ------------- | ---------------------------- | ----------- |
+| `sim-svc` → `source-db`                    | `sim_zone`  | For insert/update simulation |             |
+| `connect` → `source-db`                    | `source_zone`  | CDC source                   |             |
+| `connect` → `target-db`                    | `target_zone`  | JDBC sink                    |             |
+| `connect` → `kafka`                        | `kafka_zone`   | Message transport            |             |
+| `connect` → `prometheus` (metrics scrape)  | `monitor_zone` | Monitoring                   |             |
+| `prometheus` → `kafka-exporter`, `connect` | `monitor_zone` | Metric sources               |             |
+| `grafana` → `prometheus`                   | `monitor_zone` | Dashboard                    |             |
 
 
 ---

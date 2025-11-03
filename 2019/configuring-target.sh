@@ -27,9 +27,19 @@ target_json=$(jq \
         .config["connection.url"]=$connection_url |
         .config["connection.username"]=$db_user |
         .config["connection.password"]=$db_password |
-        .config["transforms.removePrefix.regex"]=$transforms_remove_prefix_regex
+        .config["transforms.removePrefix.regex"]=$transforms_remove_prefix_regex |
+        .config["errors.deadletterqueue.topic.name"]=("dlq." + $name) 
     ' \
     target.json)
+
+
+docker compose -f ${DC_FILE} exec kafka /kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --topic dlq.$CONNECTOR_NAME_TARGET \
+  --replication-factor 1 \
+  --partitions 1
+
 
 output=$(curl -sS -X POST http://localhost:8083/connectors/ \
     -H "Accept:application/json" \
